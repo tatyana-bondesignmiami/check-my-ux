@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
+import { LazyStripeEmbeddedCheckout } from "@/components/LazyStripeEmbeddedCheckout";
 
 interface CheckoutOptions {
   priceId: string;
@@ -22,7 +22,9 @@ export function useStripeCheckout() {
     setOptions(null);
   }, []);
 
-  const checkoutElement = isOpen && options ? <StripeEmbeddedCheckout {...options} /> : null;
+  const checkoutElement =
+    isOpen && options ? <LazyStripeEmbeddedCheckout {...options} /> : null;
 
   return { openCheckout, closeCheckout, isOpen, checkoutElement };
 }
+
