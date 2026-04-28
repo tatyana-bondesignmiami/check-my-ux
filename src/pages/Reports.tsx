@@ -4,7 +4,7 @@ import { FileText, Loader2, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { getDeviceId } from "@/lib/device";
+import { useAuth } from "@/contexts/AuthContext";
 import { scoreColor } from "@/lib/uxAudit";
 
 interface ReportCard {
@@ -16,20 +16,22 @@ interface ReportCard {
 }
 
 const Reports = () => {
+  const { user } = useAuth();
   const [reports, setReports] = useState<ReportCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       const { data } = await supabase
         .from("reports")
         .select("id, screen_type, overall_score, summary, created_at")
-        .eq("device_id", getDeviceId())
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setReports(data ?? []);
       setLoading(false);
     })();
-  }, []);
+  }, [user]);
 
   return (
     <AppShell>

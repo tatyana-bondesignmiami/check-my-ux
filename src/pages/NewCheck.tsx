@@ -15,11 +15,12 @@ import {
 import { Link } from "react-router-dom";
 import { SCREEN_TYPES, ScreenType, UxReport, priorityFromScore } from "@/lib/uxAudit";
 import { supabase } from "@/integrations/supabase/client";
-import { getDeviceId } from "@/lib/device";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const NewCheck = () => {
   const navigate = useNavigate();
+  const { user, refresh } = useAuth();
   const fileInput = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -60,16 +61,20 @@ const NewCheck = () => {
 
       const report = aiData.report as UxReport;
 
+      if (!user) {
+        toast.error("Please sign in to save reports");
+        setLoading(false);
+        return;
+      }
       const { data, error } = await supabase
         .from("reports")
         .insert([{
-          device_id: getDeviceId(),
+          user_id: user.id,
           screen_type: screenType,
           description: description.trim() || null,
           image_url: imagePreview,
           overall_score: report.overall_score,
-          visual_hierarchy: report.visual_hierarchy_score,
-          accessibility: report.accessibility_risk_score,
+          visual_hierarchy_score: report.visual_hierarchy_score,
           layout_consistency_score: report.layout_consistency_score,
           typography_consistency_score: report.typography_consistency_score,
           component_consistency_score: report.component_consistency_score,
@@ -91,6 +96,7 @@ const NewCheck = () => {
         setLoading(false);
         return;
       }
+      await refresh();
       navigate(`/report/${data.id}`);
     } catch (e) {
       console.error(e);

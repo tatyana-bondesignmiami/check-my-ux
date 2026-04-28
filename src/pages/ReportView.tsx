@@ -25,7 +25,7 @@ interface ReportRow {
   typography_consistency_score: number | null;
   component_consistency_score: number | null;
   color_consistency_score: number | null;
-  visual_hierarchy: number | null;
+  visual_hierarchy_score: number | null;
   accessibility_risk_score: number | null;
   strengths: string[];
   issues: string[];
@@ -152,8 +152,8 @@ const ReportView = () => {
             {report.color_consistency_score != null && (
               <ScoreBar label="Color consistency" score={report.color_consistency_score} />
             )}
-            {report.visual_hierarchy != null && (
-              <ScoreBar label="Visual hierarchy" score={report.visual_hierarchy} />
+            {report.visual_hierarchy_score != null && (
+              <ScoreBar label="Visual hierarchy" score={report.visual_hierarchy_score} />
             )}
             {a11yDisplay != null && (
               <ScoreBar label="Accessibility" score={a11yDisplay} />
