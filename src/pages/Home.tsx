@@ -1,62 +1,64 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, ShieldCheck, Zap, Eye } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
+  const { user } = useAuth();
+
   return (
-    <AppShell>
+    <AppShell hideNav={!user}>
       <div className="px-5 pt-12 pb-6 animate-fade-in">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="h-9 w-9 rounded-2xl bg-foreground flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-background" />
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-2xl bg-foreground flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-background" />
+            </div>
+            <span className="text-sm font-semibold tracking-tight">Check My UX</span>
           </div>
-          <span className="text-sm font-semibold tracking-tight">Check My UX</span>
+          {!user && (
+            <div className="flex items-center gap-2">
+              <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">Log in</Link>
+            </div>
+          )}
         </div>
 
         <h1 className="text-display mb-3">
-          UX clarity,<br />
+          Audit visual UX,<br />
           <span className="text-muted-foreground">in seconds.</span>
         </h1>
         <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-sm">
-          AI-powered UX clarity checks for digital products. Upload a screenshot or describe a screen
-          to get a structured UX review.
+          AI-powered visual consistency checks for websites, dashboards, mobile screens, and checkout flows.
         </p>
 
-        <Button asChild size="lg" className="w-full h-14 rounded-2xl text-base font-semibold">
-          <Link to="/new">
-            Start UX Audit
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
-        </Button>
+        <div className="space-y-2.5">
+          <Button asChild size="lg" className="w-full h-14 rounded-2xl text-base font-semibold">
+            <Link to={user ? "/new" : "/signup"}>
+              {user ? "Start UX Audit" : "Start Free"} <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+          {!user && (
+            <Button asChild size="lg" variant="outline" className="w-full h-14 rounded-2xl text-base">
+              <Link to="/pricing">View pricing</Link>
+            </Button>
+          )}
+        </div>
       </div>
 
-      <section className="px-5 mt-4 space-y-3">
-        <FeatureCard
-          icon={<Zap className="h-5 w-5" />}
-          title="Instant heuristic review"
-          desc="Six core dimensions scored from 1 to 100."
-        />
-        <FeatureCard
-          icon={<ShieldCheck className="h-5 w-5" />}
-          title="Actionable improvements"
-          desc="Strengths, issues and prioritized fixes."
-        />
-        <FeatureCard
-          icon={<Sparkles className="h-5 w-5" />}
-          title="Saved for later"
-          desc="Keep every audit in your reports library."
-        />
+      <section className="px-5 mt-6 space-y-3">
+        <FeatureCard icon={<Eye className="h-5 w-5" />} title="Real screenshot analysis" desc="Powered by Gemini 3.1 Pro vision." />
+        <FeatureCard icon={<Zap className="h-5 w-5" />} title="Visual consistency report" desc="Layout, type, color, components, hierarchy." />
+        <FeatureCard icon={<ShieldCheck className="h-5 w-5" />} title="Prioritized fixes" desc="High / medium / low severity, with evidence." />
       </section>
 
-      <div className="px-5 mt-8">
-        <Link
-          to="/reports"
-          className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-3"
-        >
-          View saved reports →
-        </Link>
-      </div>
+      {!user && (
+        <div className="px-5 mt-10 mb-6">
+          <p className="text-xs text-center text-muted-foreground">
+            3 free audits on signup. No credit card required.
+          </p>
+        </div>
+      )}
     </AppShell>
   );
 };
