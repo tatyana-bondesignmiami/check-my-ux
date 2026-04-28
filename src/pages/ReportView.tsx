@@ -69,7 +69,7 @@ const ReportView = () => {
         strengths: (data.strengths as string[]) ?? [],
         issues: (data.issues as string[]) ?? [],
         recommendations: (data.recommendations as string[]) ?? [],
-        priority_fixes: (data.priority_fixes as PriorityFix[]) ?? [],
+        priority_fixes: (data.priority_fixes as unknown as PriorityFix[]) ?? [],
       } as ReportRow);
       setLoading(false);
     })();

@@ -62,7 +62,7 @@ const NewCheck = () => {
 
       const { data, error } = await supabase
         .from("reports")
-        .insert({
+        .insert([{
           device_id: getDeviceId(),
           screen_type: screenType,
           description: description.trim() || null,
@@ -82,7 +82,7 @@ const NewCheck = () => {
           design_system_notes: report.design_system_notes,
           summary: report.summary,
           priority: priorityFromScore(report.overall_score),
-        })
+        }])
         .select("id")
         .single();
 
