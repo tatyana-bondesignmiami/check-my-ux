@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      reports: {
+        Row: {
+          accessibility: number
+          content_clarity: number
+          conversion_friction: number
+          created_at: string
+          cta_clarity: number
+          description: string | null
+          device_id: string
+          id: string
+          image_url: string | null
+          issues: Json
+          overall_score: number
+          priority: string
+          recommendations: Json
+          screen_type: string
+          strengths: Json
+          summary: string
+          visual_hierarchy: number
+        }
+        Insert: {
+          accessibility: number
+          content_clarity: number
+          conversion_friction: number
+          created_at?: string
+          cta_clarity: number
+          description?: string | null
+          device_id: string
+          id?: string
+          image_url?: string | null
+          issues?: Json
+          overall_score: number
+          priority: string
+          recommendations?: Json
+          screen_type: string
+          strengths?: Json
+          summary: string
+          visual_hierarchy: number
+        }
+        Update: {
+          accessibility?: number
+          content_clarity?: number
+          conversion_friction?: number
+          created_at?: string
+          cta_clarity?: number
+          description?: string | null
+          device_id?: string
+          id?: string
+          image_url?: string | null
+          issues?: Json
+          overall_score?: number
+          priority?: string
+          recommendations?: Json
+          screen_type?: string
+          strengths?: Json
+          summary?: string
+          visual_hierarchy?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
