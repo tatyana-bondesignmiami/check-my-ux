@@ -3,11 +3,21 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { RequireAuth } from "@/components/RequireAuth";
 import Home from "./pages/Home";
 import NewCheck from "./pages/NewCheck";
 import ReportView from "./pages/ReportView";
 import Reports from "./pages/Reports";
 import About from "./pages/About";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/Dashboard";
+import Pricing from "./pages/Pricing";
+import Account from "./pages/Account";
+import CheckoutReturn from "./pages/CheckoutReturn";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -18,14 +28,59 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/new" element={<NewCheck />} />
-          <Route path="/report/:id" element={<ReportView />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/checkout/return" element={<CheckoutReturn />} />
+            <Route
+              path="/dashboard"
+              element={
+                <RequireAuth>
+                  <Dashboard />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/account"
+              element={
+                <RequireAuth>
+                  <Account />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/new"
+              element={
+                <RequireAuth>
+                  <NewCheck />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <RequireAuth>
+                  <Reports />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/report/:id"
+              element={
+                <RequireAuth>
+                  <ReportView />
+                </RequireAuth>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
