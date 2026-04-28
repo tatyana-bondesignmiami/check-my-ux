@@ -16,61 +16,82 @@ export type Database = {
     Tables: {
       reports: {
         Row: {
-          accessibility: number
-          content_clarity: number
-          conversion_friction: number
+          accessibility: number | null
+          accessibility_risk_score: number | null
+          color_consistency_score: number | null
+          component_consistency_score: number | null
+          content_clarity: number | null
+          conversion_friction: number | null
           created_at: string
-          cta_clarity: number
+          cta_clarity: number | null
           description: string | null
+          design_system_notes: string | null
           device_id: string
           id: string
           image_url: string | null
           issues: Json
+          layout_consistency_score: number | null
           overall_score: number
           priority: string
+          priority_fixes: Json
           recommendations: Json
           screen_type: string
           strengths: Json
           summary: string
-          visual_hierarchy: number
+          typography_consistency_score: number | null
+          visual_hierarchy: number | null
         }
         Insert: {
-          accessibility: number
-          content_clarity: number
-          conversion_friction: number
+          accessibility?: number | null
+          accessibility_risk_score?: number | null
+          color_consistency_score?: number | null
+          component_consistency_score?: number | null
+          content_clarity?: number | null
+          conversion_friction?: number | null
           created_at?: string
-          cta_clarity: number
+          cta_clarity?: number | null
           description?: string | null
+          design_system_notes?: string | null
           device_id: string
           id?: string
           image_url?: string | null
           issues?: Json
+          layout_consistency_score?: number | null
           overall_score: number
           priority: string
+          priority_fixes?: Json
           recommendations?: Json
           screen_type: string
           strengths?: Json
           summary: string
-          visual_hierarchy: number
+          typography_consistency_score?: number | null
+          visual_hierarchy?: number | null
         }
         Update: {
-          accessibility?: number
-          content_clarity?: number
-          conversion_friction?: number
+          accessibility?: number | null
+          accessibility_risk_score?: number | null
+          color_consistency_score?: number | null
+          component_consistency_score?: number | null
+          content_clarity?: number | null
+          conversion_friction?: number | null
           created_at?: string
-          cta_clarity?: number
+          cta_clarity?: number | null
           description?: string | null
+          design_system_notes?: string | null
           device_id?: string
           id?: string
           image_url?: string | null
           issues?: Json
+          layout_consistency_score?: number | null
           overall_score?: number
           priority?: string
+          priority_fixes?: Json
           recommendations?: Json
           screen_type?: string
           strengths?: Json
           summary?: string
-          visual_hierarchy?: number
+          typography_consistency_score?: number | null
+          visual_hierarchy?: number | null
         }
         Relationships: []
       }
