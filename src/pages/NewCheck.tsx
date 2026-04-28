@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ImagePlus, Loader2, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, Loader2, X, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link } from "react-router-dom";
-import { SCREEN_TYPES, ScreenType, generateMockReport } from "@/lib/uxAudit";
+import { SCREEN_TYPES, ScreenType, UxReport, priorityFromScore } from "@/lib/uxAudit";
 import { supabase } from "@/integrations/supabase/client";
 import { getDeviceId } from "@/lib/device";
 import { toast } from "sonner";
@@ -37,37 +37,66 @@ const NewCheck = () => {
   };
 
   const handleSubmit = async () => {
-    if (!imagePreview && !description.trim()) {
-      toast.error("Add a screenshot or describe the screen");
+    if (!imagePreview) {
+      toast.error("Please upload a screenshot to analyze");
       return;
     }
     setLoading(true);
-    // Simulated AI delay
-    await new Promise((r) => setTimeout(r, 1200));
-    const report = generateMockReport({
-      screenType,
-      description: description.trim() || undefined,
-      hasImage: !!imagePreview,
-    });
+    try {
+      const { data: aiData, error: aiError } = await supabase.functions.invoke("analyze-ux", {
+        body: {
+          imageDataUrl: imagePreview,
+          screenType,
+          description: description.trim() || undefined,
+        },
+      });
 
-    const { data, error } = await supabase
-      .from("reports")
-      .insert({
-        device_id: getDeviceId(),
-        screen_type: screenType,
-        description: description.trim() || null,
-        image_url: imagePreview,
-        ...report,
-      })
-      .select("id")
-      .single();
+      if (aiError || !aiData?.report) {
+        const msg = (aiError as any)?.context?.error || aiData?.error || aiError?.message || "Could not analyze screenshot";
+        toast.error(msg);
+        setLoading(false);
+        return;
+      }
 
-    setLoading(false);
-    if (error || !data) {
-      toast.error("Could not generate report");
-      return;
+      const report = aiData.report as UxReport;
+
+      const { data, error } = await supabase
+        .from("reports")
+        .insert([{
+          device_id: getDeviceId(),
+          screen_type: screenType,
+          description: description.trim() || null,
+          image_url: imagePreview,
+          overall_score: report.overall_score,
+          visual_hierarchy: report.visual_hierarchy_score,
+          accessibility: report.accessibility_risk_score,
+          layout_consistency_score: report.layout_consistency_score,
+          typography_consistency_score: report.typography_consistency_score,
+          component_consistency_score: report.component_consistency_score,
+          color_consistency_score: report.color_consistency_score,
+          accessibility_risk_score: report.accessibility_risk_score,
+          strengths: report.strengths,
+          issues: report.issues,
+          recommendations: report.recommendations,
+          priority_fixes: report.priority_fixes as unknown as any,
+          design_system_notes: report.design_system_notes,
+          summary: report.summary,
+          priority: priorityFromScore(report.overall_score),
+        }])
+        .select("id")
+        .single();
+
+      if (error || !data) {
+        toast.error("Could not save report");
+        setLoading(false);
+        return;
+      }
+      navigate(`/report/${data.id}`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Unexpected error");
+      setLoading(false);
     }
-    navigate(`/report/${data.id}`);
   };
 
   return (
@@ -81,7 +110,7 @@ const NewCheck = () => {
 
         <h1 className="text-title-lg mb-2">New UX Check</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Provide a screenshot, a URL or a short description.
+          Upload a screenshot. AI will analyze visual consistency, hierarchy, and design system discipline.
         </p>
 
         <div className="space-y-6">
@@ -122,15 +151,15 @@ const NewCheck = () => {
           {/* Description */}
           <div>
             <Label htmlFor="desc" className="text-sm font-medium mb-2 block">
-              Describe the screen or paste a URL
+              Optional context
             </Label>
             <Textarea
               id="desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Pricing page with 3 plans and a sticky header CTA…"
+              placeholder="e.g. Pricing page targeting SMB users, primary goal is plan upgrade…"
               maxLength={1000}
-              className="min-h-28 rounded-2xl resize-none text-base"
+              className="min-h-24 rounded-2xl resize-none text-base"
             />
           </div>
 
@@ -153,19 +182,28 @@ const NewCheck = () => {
 
           <Button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || !imagePreview}
             size="lg"
             className="w-full h-14 rounded-2xl text-base font-semibold"
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating report…
+                Analyzing visual consistency…
               </>
             ) : (
-              "Generate UX Report"
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Run Visual UX Audit
+              </>
             )}
           </Button>
+
+          {loading && (
+            <p className="text-xs text-center text-muted-foreground">
+              This usually takes 10–25 seconds.
+            </p>
+          )}
         </div>
       </div>
     </AppShell>
