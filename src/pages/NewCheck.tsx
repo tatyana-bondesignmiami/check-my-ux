@@ -78,7 +78,7 @@ const NewCheck = () => {
           strengths: report.strengths,
           issues: report.issues,
           recommendations: report.recommendations,
-          priority_fixes: report.priority_fixes,
+          priority_fixes: report.priority_fixes as unknown as any,
           design_system_notes: report.design_system_notes,
           summary: report.summary,
           priority: priorityFromScore(report.overall_score),
