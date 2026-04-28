@@ -14,19 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          plan_type: Database["public"]["Enums"]["plan_type"]
+          stripe_customer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          plan_type?: Database["public"]["Enums"]["plan_type"]
+          stripe_customer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          plan_type?: Database["public"]["Enums"]["plan_type"]
+          stripe_customer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
-          accessibility: number | null
           accessibility_risk_score: number | null
           color_consistency_score: number | null
           component_consistency_score: number | null
-          content_clarity: number | null
-          conversion_friction: number | null
           created_at: string
-          cta_clarity: number | null
           description: string | null
           design_system_notes: string | null
-          device_id: string
           id: string
           image_url: string | null
           issues: Json
@@ -39,20 +64,16 @@ export type Database = {
           strengths: Json
           summary: string
           typography_consistency_score: number | null
-          visual_hierarchy: number | null
+          user_id: string
+          visual_hierarchy_score: number | null
         }
         Insert: {
-          accessibility?: number | null
           accessibility_risk_score?: number | null
           color_consistency_score?: number | null
           component_consistency_score?: number | null
-          content_clarity?: number | null
-          conversion_friction?: number | null
           created_at?: string
-          cta_clarity?: number | null
           description?: string | null
           design_system_notes?: string | null
-          device_id: string
           id?: string
           image_url?: string | null
           issues?: Json
@@ -65,20 +86,16 @@ export type Database = {
           strengths?: Json
           summary: string
           typography_consistency_score?: number | null
-          visual_hierarchy?: number | null
+          user_id: string
+          visual_hierarchy_score?: number | null
         }
         Update: {
-          accessibility?: number | null
           accessibility_risk_score?: number | null
           color_consistency_score?: number | null
           component_consistency_score?: number | null
-          content_clarity?: number | null
-          conversion_friction?: number | null
           created_at?: string
-          cta_clarity?: number | null
           description?: string | null
           design_system_notes?: string | null
-          device_id?: string
           id?: string
           image_url?: string | null
           issues?: Json
@@ -91,7 +108,68 @@ export type Database = {
           strengths?: Json
           summary?: string
           typography_consistency_score?: number | null
-          visual_hierarchy?: number | null
+          user_id?: string
+          visual_hierarchy_score?: number | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          credits_added: number
+          id: string
+          product_type: string
+          status: string
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credits_added?: number
+          id?: string
+          product_type: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credits_added?: number
+          id?: string
+          product_type?: string
+          status?: string
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          credits_remaining: number
+          credits_used_this_month: number
+          last_credit_reset: string
+          monthly_credit_limit: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          credits_remaining?: number
+          credits_used_this_month?: number
+          last_credit_reset?: string
+          monthly_credit_limit?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          credits_remaining?: number
+          credits_used_this_month?: number
+          last_credit_reset?: string
+          monthly_credit_limit?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -100,10 +178,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      deduct_credit: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      plan_type: "free" | "starter" | "pro" | "studio"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -230,6 +308,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      plan_type: ["free", "starter", "pro", "studio"],
+    },
   },
 } as const
