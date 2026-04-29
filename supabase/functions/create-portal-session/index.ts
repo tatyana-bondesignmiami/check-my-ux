@@ -40,9 +40,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: sub } = await supabase
+    // Try requested env first, then fall back to any env so users with a
+    // sandbox-created subscription can still manage billing from a live build.
+    let { data: sub } = await supabase
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, environment")
       .eq("user_id", user.id)
       .eq("environment", env)
       .order("created_at", { ascending: false })
@@ -50,22 +52,48 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!sub?.stripe_customer_id) {
-      return new Response(JSON.stringify({ error: "No subscription found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const { data: anySub } = await supabase
+        .from("subscriptions")
+        .select("stripe_customer_id, environment")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      sub = anySub ?? null;
     }
 
-    const stripe = createStripeClient(env);
-    const portal = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
-      ...(returnUrl ? { return_url: returnUrl } : {}),
-    });
+    if (!sub?.stripe_customer_id) {
+      return new Response(
+        JSON.stringify({ error: "No subscription found for this account." }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
-    return new Response(JSON.stringify({ url: portal.url }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const resolvedEnv: StripeEnv = (sub.environment === "live" ? "live" : "sandbox");
+
+    try {
+      const stripe = createStripeClient(resolvedEnv);
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: sub.stripe_customer_id,
+        ...(returnUrl ? { return_url: returnUrl } : {}),
+      });
+
+      return new Response(JSON.stringify({ url: portal.url }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (stripeErr) {
+      console.error("Stripe portal error:", stripeErr);
+      const msg = stripeErr instanceof Error ? stripeErr.message : "Stripe error";
+      // Common cause in live mode: portal not configured in Stripe dashboard.
+      const hint = /configuration/i.test(msg)
+        ? "Billing portal is not configured in Stripe. Enable it at https://dashboard.stripe.com/settings/billing/portal."
+        : msg;
+      return new Response(
+        JSON.stringify({ error: hint }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
   } catch (e) {
     console.error("create-portal-session error:", e);
     return new Response(
