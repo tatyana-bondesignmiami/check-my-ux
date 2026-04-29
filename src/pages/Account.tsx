@@ -90,9 +90,12 @@ const Account = () => {
           returnUrl: `${window.location.origin}/account`,
         },
       });
+      // Surface the real error message from the function's JSON body
+      const errMsg = (data as any)?.error || (error as any)?.context?.error;
+      if (errMsg) throw new Error(errMsg);
       if (error) throw error;
       const url = (data as any)?.url;
-      if (!url) throw new Error((data as any)?.error || "Failed to open billing portal");
+      if (!url) throw new Error("Failed to open billing portal");
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to open billing portal");
