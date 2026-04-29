@@ -146,7 +146,7 @@ const Account = () => {
           )}
         </div>
 
-        {isPaid && hasActiveSub && (
+        {isPaid && (
           <div className="ios-card p-5 mt-3">
             <p className="text-sm font-semibold mb-1">Subscription</p>
             {alreadyCanceling ? (
@@ -157,8 +157,8 @@ const Account = () => {
             ) : (
               <p className="text-sm text-muted-foreground mb-4">
                 {periodEndStr
-                  ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
-                  : "Cancel anytime — you'll keep access until your current period ends."}
+                  ? `Renews on ${periodEndStr}. Manage billing or cancel anytime.`
+                  : "Manage your billing details, payment method, or cancel anytime."}
               </p>
             )}
 
@@ -175,7 +175,7 @@ const Account = () => {
                 )}
               </Button>
 
-              {!alreadyCanceling && (
+              {hasActiveSub && !alreadyCanceling && (
                 <Button
                   variant="outline"
                   onClick={() => setConfirmOpen(true)}
