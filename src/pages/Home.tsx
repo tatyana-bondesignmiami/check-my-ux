@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles, ShieldCheck, Zap, Eye } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { LegalFooter } from "@/components/LegalFooter";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
@@ -62,7 +61,6 @@ const Home = () => {
       )}
 
       <div className="px-5 pb-6">
-        <LegalFooter />
       </div>
     </AppShell>
   );
