@@ -146,7 +146,7 @@ const Account = () => {
           )}
         </div>
 
-        {isPaid && hasActiveSub && (
+        {isPaid && (
           <div className="ios-card p-5 mt-3">
             <p className="text-sm font-semibold mb-1">Subscription</p>
             {alreadyCanceling ? (
