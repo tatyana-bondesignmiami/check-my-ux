@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { LegalFooter } from "@/components/LegalFooter";
 
 interface LegalPageProps {
   title: string;
@@ -36,7 +35,6 @@ export function LegalPage({ title, updated, children }: LegalPageProps) {
           {children}
         </div>
 
-        <LegalFooter />
       </div>
     </AppShell>
   );
