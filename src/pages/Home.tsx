@@ -15,7 +15,7 @@ const Home = () => {
             <div className="h-9 w-9 rounded-2xl bg-foreground flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-background" />
             </div>
-            <span className="text-sm font-semibold tracking-tight">Check My UX</span>
+            <span className="text-sm font-semibold tracking-tight">Fix My UX</span>
           </div>
           {!user && (
             <div className="flex items-center gap-2">
