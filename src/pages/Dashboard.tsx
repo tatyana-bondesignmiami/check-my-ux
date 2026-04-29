@@ -124,7 +124,7 @@ const Dashboard = () => {
               Run your first UX audit to start building a visual consistency history.
             </p>
             <Button asChild size="sm" className="rounded-xl">
-              <Link to="/new">Start UX Check</Link>
+              <Link to="/new">Start UX Fix</Link>
             </Button>
           </div>
         ) : (
