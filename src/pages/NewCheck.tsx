@@ -114,7 +114,7 @@ const NewCheck = () => {
           </Link>
         </div>
 
-        <h1 className="text-title-lg mb-2">New UX Check</h1>
+        <h1 className="text-title-lg mb-2">New UX Fix</h1>
         <p className="text-sm text-muted-foreground mb-8">
           Upload a screenshot. AI will analyze visual consistency, hierarchy, and design system discipline.
         </p>

@@ -1,6 +1,6 @@
 {
-  "name": "Check My UX",
-  "short_name": "Check UX",
+  "name": "Fix My UX",
+  "short_name": "Fix UX",
   "description": "AI-powered UX clarity checks. Audit a screen in seconds.",
   "start_url": "/",
   "scope": "/",
