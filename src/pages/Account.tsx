@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut, Mail, Sparkles, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, LogOut, Mail, Sparkles, XCircle, Loader2, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ const Account = () => {
   } | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   const isPaid = !!profile && profile.plan_type !== "free";
   const env = getStripeEnvironment();
@@ -77,6 +78,26 @@ const Account = () => {
       toast.error(e instanceof Error ? e.message : "Failed to cancel subscription");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-portal-session", {
+        body: {
+          environment: env,
+          returnUrl: `${window.location.origin}/account`,
+        },
+      });
+      if (error) throw error;
+      const url = (data as any)?.url;
+      if (!url) throw new Error((data as any)?.error || "Failed to open billing portal");
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to open billing portal");
+    } finally {
+      setOpeningPortal(false);
     }
   };
 
@@ -129,17 +150,32 @@ const Account = () => {
           <div className="ios-card p-5 mt-3">
             <p className="text-sm font-semibold mb-1">Subscription</p>
             {alreadyCanceling ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Your plan is set to end{periodEndStr ? ` on ${periodEndStr}` : " at the current period"}.
                 You'll keep access until then.
               </p>
             ) : (
-              <>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {periodEndStr
-                    ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
-                    : "Cancel anytime — you'll keep access until your current period ends."}
-                </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {periodEndStr
+                  ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
+                  : "Cancel anytime — you'll keep access until your current period ends."}
+              </p>
+            )}
+
+            <div className="space-y-2">
+              <Button
+                onClick={handleManageSubscription}
+                disabled={openingPortal}
+                className="w-full h-12 rounded-2xl justify-center text-base"
+              >
+                {openingPortal ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</>
+                ) : (
+                  <><CreditCard className="h-4 w-4" /> Manage Subscription</>
+                )}
+              </Button>
+
+              {!alreadyCanceling && (
                 <Button
                   variant="outline"
                   onClick={() => setConfirmOpen(true)}
@@ -147,8 +183,8 @@ const Account = () => {
                 >
                   <XCircle className="h-4 w-4" /> Cancel subscription
                 </Button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         )}
 
