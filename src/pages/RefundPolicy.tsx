@@ -73,7 +73,7 @@ const RefundPolicy = () => (
         your account with:
       </p>
       <ul>
-        <li>The transaction date and amount, or your invoice number.</li>
+        <li>The transaction date and amount.</li>
         <li>A short note about why you're requesting a refund.</li>
       </ul>
       <p>We aim to respond within 2 business days.</p>
