@@ -18,6 +18,9 @@ import Dashboard from "./pages/Dashboard";
 import Pricing from "./pages/Pricing";
 import Account from "./pages/Account";
 import CheckoutReturn from "./pages/CheckoutReturn";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import RefundPolicy from "./pages/RefundPolicy";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -38,6 +41,9 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/checkout/return" element={<CheckoutReturn />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
             <Route
               path="/dashboard"
               element={
