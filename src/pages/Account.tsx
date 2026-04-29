@@ -31,6 +31,7 @@ const Account = () => {
   } | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   const isPaid = !!profile && profile.plan_type !== "free";
   const env = getStripeEnvironment();
