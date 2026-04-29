@@ -4,11 +4,12 @@ import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const CheckoutReturn = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
-  const { refresh } = useAuth();
+  const { refresh, user } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "canceled">("loading");
 
   useEffect(() => {
@@ -16,13 +17,22 @@ const CheckoutReturn = () => {
       setStatus("canceled");
       return;
     }
-    // Webhook handles credit/plan update server-side. Just refresh local state after a brief moment.
-    const t = setTimeout(async () => {
+    let done = false;
+    const finish = async () => {
+      if (done) return;
+      done = true;
       await refresh();
       setStatus("success");
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [sessionId, refresh]);
+    };
+    const pollId = user ? setInterval(async () => {
+      const { data } = await supabase
+        .from("transactions").select("id")
+        .eq("stripe_session_id", sessionId).maybeSingle();
+      if (data) { clearInterval(pollId); finish(); }
+    }, 1500) : undefined;
+    const timeoutId = setTimeout(() => { if (pollId) clearInterval(pollId); finish(); }, 12000);
+    return () => { if (pollId) clearInterval(pollId); clearTimeout(timeoutId); };
+  }, [sessionId, refresh, user]);
 
   return (
     <AppShell hideNav>

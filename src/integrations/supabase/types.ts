@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      processed_stripe_events: {
+        Row: {
+          event_id: string
+          processed_at: string
+        }
+        Insert: {
+          event_id: string
+          processed_at?: string
+        }
+        Update: {
+          event_id?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

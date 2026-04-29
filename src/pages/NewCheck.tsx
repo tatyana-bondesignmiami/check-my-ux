@@ -17,6 +17,7 @@ import { SCREEN_TYPES, ScreenType, UxReport, priorityFromScore } from "@/lib/uxA
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 const NewCheck = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const NewCheck = () => {
   const [description, setDescription] = useState("");
   const [screenType, setScreenType] = useState<ScreenType>("Landing Page");
   const [loading, setLoading] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeCopy, setUpgradeCopy] = useState<{ title: string; description: string } | null>(null);
 
   const handleFile = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
@@ -53,6 +56,25 @@ const NewCheck = () => {
       });
 
       if (aiError || !aiData?.report) {
+        const code = aiData?.error || (aiError as any)?.context?.error;
+        if (code === "out_of_credits") {
+          setUpgradeCopy({
+            title: "You're out of audit credits",
+            description: "Upgrade your plan or buy a credit pack to continue analyzing screens.",
+          });
+          setUpgradeOpen(true);
+          setLoading(false);
+          return;
+        }
+        if (code === "report_cap_reached") {
+          setUpgradeCopy({
+            title: "Free plan: 3 reports max",
+            description: "Upgrade to Pro or Studio to save unlimited reports.",
+          });
+          setUpgradeOpen(true);
+          setLoading(false);
+          return;
+        }
         const msg = (aiError as any)?.context?.error || aiData?.error || aiError?.message || "Could not analyze screenshot";
         toast.error(msg);
         setLoading(false);
@@ -212,6 +234,12 @@ const NewCheck = () => {
           )}
         </div>
       </div>
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        title={upgradeCopy?.title}
+        description={upgradeCopy?.description}
+      />
     </AppShell>
   );
 };

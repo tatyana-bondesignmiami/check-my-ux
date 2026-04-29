@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.analyze-ux]
 verify_jwt = false
+
+[functions.cancel-subscription]
+verify_jwt = false
+
+[functions.change-plan]
+verify_jwt = false
