@@ -157,8 +157,8 @@ const Account = () => {
             ) : (
               <p className="text-sm text-muted-foreground mb-4">
                 {periodEndStr
-                  ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
-                  : "Cancel anytime — you'll keep access until your current period ends."}
+                  ? `Renews on ${periodEndStr}. Manage billing or cancel anytime.`
+                  : "Manage your billing details, payment method, or cancel anytime."}
               </p>
             )}
 
