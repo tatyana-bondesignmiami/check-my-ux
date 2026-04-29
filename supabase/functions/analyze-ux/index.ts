@@ -27,6 +27,25 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Free-plan saved-report cap (3 lifetime). Pro/Studio/Starter unlimited.
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("plan_type")
+      .eq("id", user.id)
+      .maybeSingle();
+    if ((prof?.plan_type as string) === "free") {
+      const { count } = await supabase
+        .from("reports")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if ((count ?? 0) >= 3) {
+        return new Response(JSON.stringify({ error: "report_cap_reached" }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Atomic credit deduction (server-only RPC)
     const { data: deducted, error: dErr } = await supabase.rpc("deduct_credit", { _user_id: user.id });
     if (dErr) {
