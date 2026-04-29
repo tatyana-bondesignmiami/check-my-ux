@@ -175,7 +175,7 @@ const Account = () => {
                 )}
               </Button>
 
-              {!alreadyCanceling && (
+              {hasActiveSub && !alreadyCanceling && (
                 <Button
                   variant="outline"
                   onClick={() => setConfirmOpen(true)}
