@@ -125,7 +125,7 @@ const Privacy = () => (
     <section>
       <h2>Contact</h2>
       <p>
-        Questions or requests: <a href="mailto:privacy@fixmyux.app">privacy@fixmyux.app</a>.
+        Questions or requests: <a href="mailto:tatyana@bondesignmiami.com">tatyana@bondesignmiami.com</a>.
       </p>
     </section>
   </LegalPage>

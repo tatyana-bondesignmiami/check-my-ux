@@ -134,7 +134,7 @@ const Terms = () => (
     <section>
       <h2>14. Contact</h2>
       <p>
-        Questions: <a href="mailto:support@fixmyux.app">support@fixmyux.app</a>.
+        Questions: <a href="mailto:tatyana@bondesignmiami.com">tatyana@bondesignmiami.com</a>.
       </p>
     </section>
   </LegalPage>

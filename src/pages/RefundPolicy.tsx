@@ -69,7 +69,7 @@ const RefundPolicy = () => (
     <section>
       <h2>How to request a refund</h2>
       <p>
-        Email <a href="mailto:billing@fixmyux.app">billing@fixmyux.app</a> from the address on
+        Email <a href="mailto:tatyana@bondesignmiami.com">tatyana@bondesignmiami.com</a> from the address on
         your account with:
       </p>
       <ul>
