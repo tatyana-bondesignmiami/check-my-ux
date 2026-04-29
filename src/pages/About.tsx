@@ -1,6 +1,5 @@
 import { Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { LegalFooter } from "@/components/LegalFooter";
 
 const About = () => {
   return (
@@ -39,7 +38,6 @@ const About = () => {
           Version 1.0 · Made for designers and builders
         </p>
 
-        <LegalFooter />
       </div>
     </AppShell>
   );
