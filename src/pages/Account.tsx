@@ -150,17 +150,32 @@ const Account = () => {
           <div className="ios-card p-5 mt-3">
             <p className="text-sm font-semibold mb-1">Subscription</p>
             {alreadyCanceling ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 Your plan is set to end{periodEndStr ? ` on ${periodEndStr}` : " at the current period"}.
                 You'll keep access until then.
               </p>
             ) : (
-              <>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {periodEndStr
-                    ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
-                    : "Cancel anytime — you'll keep access until your current period ends."}
-                </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {periodEndStr
+                  ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
+                  : "Cancel anytime — you'll keep access until your current period ends."}
+              </p>
+            )}
+
+            <div className="space-y-2">
+              <Button
+                onClick={handleManageSubscription}
+                disabled={openingPortal}
+                className="w-full h-12 rounded-2xl justify-center text-base"
+              >
+                {openingPortal ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</>
+                ) : (
+                  <><CreditCard className="h-4 w-4" /> Manage Subscription</>
+                )}
+              </Button>
+
+              {!alreadyCanceling && (
                 <Button
                   variant="outline"
                   onClick={() => setConfirmOpen(true)}
@@ -168,8 +183,8 @@ const Account = () => {
                 >
                   <XCircle className="h-4 w-4" /> Cancel subscription
                 </Button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         )}
 
