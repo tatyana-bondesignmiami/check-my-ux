@@ -48,6 +48,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Block duplicate active subscriptions for the same price
+    if (priceId === "pro_monthly" || priceId === "studio_monthly") {
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("price_id, status")
+        .eq("user_id", userId)
+        .eq("environment", environment)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (sub && sub.status !== "canceled" && sub.price_id === priceId) {
+        return new Response(JSON.stringify({ error: "You're already on this plan." }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // If switching plans, route to change-plan instead of new checkout
+      if (sub && sub.status !== "canceled" && sub.price_id !== priceId) {
+        return new Response(JSON.stringify({ error: "switch_plan_required", currentPriceId: sub.price_id }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const stripe = createStripeClient(environment as StripeEnv);
     const prices = await stripe.prices.list({ lookup_keys: [priceId] });
     if (!prices.data.length) {
