@@ -81,6 +81,26 @@ const Account = () => {
     }
   };
 
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-portal-session", {
+        body: {
+          environment: env,
+          returnUrl: `${window.location.origin}/account`,
+        },
+      });
+      if (error) throw error;
+      const url = (data as any)?.url;
+      if (!url) throw new Error((data as any)?.error || "Failed to open billing portal");
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to open billing portal");
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
+
   const periodEndStr = subscription?.current_period_end
     ? new Date(subscription.current_period_end).toLocaleDateString(undefined, {
         year: "numeric",
