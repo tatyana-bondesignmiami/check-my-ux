@@ -232,12 +232,23 @@ async function handleInvoicePaymentSucceeded(invoice: any, env: StripeEnv) {
 }
 
 async function handleInvoicePaymentFailed(invoice: any, env: StripeEnv) {
-  const subId = invoice.subscription;
+  const subId = invoice.subscription || invoice.lines?.data?.[0]?.subscription;
   if (!subId) return;
-  await getSupabase().from("subscriptions").update({
-    status: "past_due",
-    updated_at: new Date().toISOString(),
-  } as any).eq("stripe_subscription_id", subId).eq("environment", env);
+
+  // Policy: cancel the subscription immediately on any recurring payment failure.
+  // The resulting customer.subscription.deleted event will downgrade the user to free.
+  try {
+    const stripe = createStripeClient(env);
+    await stripe.subscriptions.cancel(subId);
+    console.log("Canceled subscription due to failed payment:", subId);
+  } catch (e) {
+    console.error("Failed to cancel subscription after payment failure:", subId, e);
+    // Fallback: at least mark it past_due locally so UI reflects the issue.
+    await getSupabase().from("subscriptions").update({
+      status: "past_due",
+      updated_at: new Date().toISOString(),
+    } as any).eq("stripe_subscription_id", subId).eq("environment", env);
+  }
 }
 
 Deno.serve(async (req) => {
