@@ -1,18 +1,95 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut, Mail, Sparkles } from "lucide-react";
+import { ArrowLeft, LogOut, Mail, Sparkles, XCircle, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { PLAN_LABELS } from "@/lib/plans";
+import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { toast } from "sonner";
 
 const Account = () => {
   const navigate = useNavigate();
   const { user, profile, credits, signOut } = useAuth();
 
+  const [subscription, setSubscription] = useState<{
+    status: string;
+    cancel_at_period_end: boolean | null;
+    current_period_end: string | null;
+    stripe_subscription_id: string;
+  } | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const isPaid = !!profile && profile.plan_type !== "free";
+  const env = getStripeEnvironment();
+
+  useEffect(() => {
+    if (!user || !isPaid) {
+      setSubscription(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("status, cancel_at_period_end, current_period_end, stripe_subscription_id")
+        .eq("user_id", user.id)
+        .eq("environment", env)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) setSubscription(data ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [user, isPaid, env]);
+
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cancel-subscription", {
+        body: { environment: env, mode: "at_period_end" },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Subscription will end at the current period.");
+      setSubscription((s) =>
+        s ? { ...s, cancel_at_period_end: true, status: (data as any)?.status ?? s.status } : s,
+      );
+      setConfirmOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to cancel subscription");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const periodEndStr = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
+
+  const alreadyCanceling = !!subscription?.cancel_at_period_end;
+  const hasActiveSub = !!subscription && subscription.status !== "canceled";
 
   return (
     <AppShell>
@@ -48,6 +125,33 @@ const Account = () => {
           )}
         </div>
 
+        {isPaid && hasActiveSub && (
+          <div className="ios-card p-5 mt-3">
+            <p className="text-sm font-semibold mb-1">Subscription</p>
+            {alreadyCanceling ? (
+              <p className="text-sm text-muted-foreground">
+                Your plan is set to end{periodEndStr ? ` on ${periodEndStr}` : " at the current period"}.
+                You'll keep access until then.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {periodEndStr
+                    ? `Renews on ${periodEndStr}. Cancel anytime — you'll keep access until then.`
+                    : "Cancel anytime — you'll keep access until your current period ends."}
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmOpen(true)}
+                  className="w-full h-12 rounded-2xl justify-center text-base text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+                >
+                  <XCircle className="h-4 w-4" /> Cancel subscription
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="mt-3 space-y-2">
           <Button asChild variant="outline" className="w-full h-12 rounded-2xl justify-start text-base">
             <Link to="/pricing">
@@ -59,6 +163,28 @@ const Account = () => {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={(o) => !cancelling && setConfirmOpen(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your plan will end{periodEndStr ? ` on ${periodEndStr}` : " at the end of your current billing period"}.
+              You'll keep full access until then, and you won't be charged again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Keep subscription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleCancel(); }}
+              disabled={cancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelling ? (<><Loader2 className="h-4 w-4 animate-spin" /> Cancelling…</>) : "Confirm cancel"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 };
