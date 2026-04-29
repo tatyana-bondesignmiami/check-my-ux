@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut, Mail, Sparkles, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, LogOut, Mail, Sparkles, XCircle, Loader2, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import {
