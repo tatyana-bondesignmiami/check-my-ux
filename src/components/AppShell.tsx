@@ -24,17 +24,18 @@ export function AppShell({
   hideDesktopHeader,
   width = "default",
 }: AppShellProps) {
+  // Mobile keeps the narrow app feel; tablet/desktop align to the header (max-w-6xl, px-6 lg:px-8).
   const widthClass =
     width === "wide"
-      ? "max-w-md md:max-w-3xl lg:max-w-5xl"
-      : "max-w-md md:max-w-2xl";
+      ? "max-w-md md:max-w-none md:w-full md:mx-0"
+      : "max-w-md md:max-w-none md:w-full md:mx-0";
 
   return (
     <div className="min-h-screen bg-background">
       <PaymentTestModeBanner />
       {!hideDesktopHeader && <DesktopHeader />}
       <div
-        className={`mx-auto ${widthClass} min-h-[calc(100vh-4rem)] flex flex-col ${hideNav ? "" : "pb-28 md:pb-0"} md:px-6 lg:px-8`}
+        className={`mx-auto ${widthClass} md:max-w-6xl min-h-[calc(100vh-4rem)] flex flex-col ${hideNav ? "" : "pb-28 md:pb-0"} md:px-6 lg:px-8`}
       >
         <div className="flex-1">{children}</div>
         <footer className="px-5 md:px-0 py-6 mt-auto">
