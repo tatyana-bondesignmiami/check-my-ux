@@ -146,7 +146,8 @@ const ResetPassword = () => {
 
   return (
     <AppShell hideNav>
-      <div className="px-5 pt-12 pb-8 animate-fade-in">
+      <AuthCard>
+      <div className="px-5 md:px-0 pt-12 md:pt-0 pb-8 animate-fade-in">
         <Link
           to="/login"
           className="h-10 w-10 -ml-2 mb-6 flex items-center justify-center rounded-full hover:bg-secondary"
@@ -257,6 +258,7 @@ const ResetPassword = () => {
           </div>
         )}
       </div>
+      </AuthCard>
     </AppShell>
   );
 };
