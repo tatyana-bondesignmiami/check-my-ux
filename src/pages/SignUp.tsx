@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Loader2, Sparkles, Apple } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AuthCard } from "@/components/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,7 +64,8 @@ const SignUp = () => {
 
   return (
     <AppShell hideNav>
-      <div className="px-5 pt-16 pb-8 animate-fade-in">
+      <AuthCard>
+      <div className="px-5 md:px-0 pt-16 md:pt-0 pb-8 animate-fade-in">
         <div className="flex items-center gap-2 mb-10">
           <div className="h-9 w-9 rounded-2xl bg-foreground flex items-center justify-center">
             <Sparkles className="h-4 w-4 text-background" />
@@ -116,6 +118,7 @@ const SignUp = () => {
           <Link to="/login" className="text-foreground font-medium hover:underline">Log in</Link>
         </p>
       </div>
+      </AuthCard>
     </AppShell>
   );
 };
