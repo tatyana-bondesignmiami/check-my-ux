@@ -15,14 +15,18 @@ const ForgotPassword = () => {
 
   const getRedirectBase = () => {
     const host = window.location.hostname;
-    // Use production URL for the live site & native builds (capacitor/file://).
-    // Use current origin only in local/preview dev.
-    const isDevHost =
-      host === "localhost" ||
-      host === "127.0.0.1" ||
-      host.endsWith(".lovable.app") && host.includes("preview");
-    if (isDevHost) return window.location.origin;
-    return "https://check-my-ux.lovable.app";
+    const proto = window.location.protocol;
+
+    // Browser on a real http(s) origin: use the current origin so links return
+    // to whichever domain the user is on (fixmyux.app, www.fixmyux.app,
+    // check-my-ux.lovable.app, localhost, preview, etc.).
+    if (proto === "http:" || proto === "https:") {
+      return window.location.origin;
+    }
+
+    // Native app builds (capacitor://, file://, etc.) — fall back to the
+    // canonical production domain.
+    return "https://fixmyux.app";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
