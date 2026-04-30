@@ -21,39 +21,96 @@ const ResetPassword = () => {
   useEffect(() => {
     let active = true;
 
-    const init = async () => {
-      // Supabase JS auto-processes the recovery token in the URL hash
-      // and emits a PASSWORD_RECOVERY event. Listen first, then fallback to session check.
-      const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
-        if (!active) return;
-        if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-          setStatus("ready");
-        }
-      });
-
-      // Give Supabase a tick to parse the hash, then check current session
-      await new Promise((r) => setTimeout(r, 300));
-      const { data } = await supabase.auth.getSession();
+    // Listen for Supabase recovery events (fires when JS auto-parses the hash)
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-
-      if (data.session) {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
         setStatus("ready");
-      } else {
-        // No recovery token / expired
-        setStatus("invalid");
       }
+    });
 
-      // Clean the recovery token from the visible URL
-      if (window.location.hash) {
-        window.history.replaceState(null, "", window.location.pathname);
+    const init = async () => {
+      try {
+        const url = new URL(window.location.href);
+        const hash = window.location.hash.startsWith("#")
+          ? window.location.hash.slice(1)
+          : window.location.hash;
+        const hashParams = new URLSearchParams(hash);
+        const queryParams = url.searchParams;
+
+        // 1) PKCE flow: ?code=...
+        const code = queryParams.get("code");
+        // 2) Implicit/hash flow: #access_token=...&refresh_token=...&type=recovery
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const hashType = hashParams.get("type");
+        // 3) Some links use ?token_hash=...&type=recovery
+        const tokenHash = queryParams.get("token_hash");
+        const queryType = queryParams.get("type");
+        // 4) Error in URL (expired/invalid)
+        const errorDesc =
+          hashParams.get("error_description") || queryParams.get("error_description");
+
+        if (errorDesc) {
+          if (active) setStatus("invalid");
+          window.history.replaceState(null, "", window.location.pathname);
+          return;
+        }
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!active) return;
+          if (error) {
+            setStatus("invalid");
+          } else {
+            setStatus("ready");
+          }
+        } else if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!active) return;
+          if (error) {
+            setStatus("invalid");
+          } else {
+            setStatus("ready");
+          }
+        } else if (tokenHash && queryType === "recovery") {
+          const { error } = await supabase.auth.verifyOtp({
+            type: "recovery",
+            token_hash: tokenHash,
+          });
+          if (!active) return;
+          if (error) {
+            setStatus("invalid");
+          } else {
+            setStatus("ready");
+          }
+        } else {
+          // No tokens in URL — give the listener a moment, then check session
+          await new Promise((r) => setTimeout(r, 400));
+          if (!active) return;
+          const { data } = await supabase.auth.getSession();
+          if (!active) return;
+          // Only treat as ready if we explicitly saw a recovery event;
+          // otherwise an existing session is not a recovery context.
+          if (!data.session && hashType !== "recovery") {
+            setStatus((s) => (s === "checking" ? "invalid" : s));
+          }
+        }
+      } finally {
+        // Strip tokens from the visible URL
+        if (window.location.hash || window.location.search) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
       }
-
-      return () => subscription.subscription.unsubscribe();
     };
 
     init();
     return () => {
       active = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
