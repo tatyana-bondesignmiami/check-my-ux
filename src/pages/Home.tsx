@@ -9,7 +9,7 @@ const Home = () => {
 
   return (
     <AppShell hideNav={!user}>
-      <div className="px-5 md:px-0 pt-12 md:pt-16 pb-6 animate-fade-in">
+      <div className="px-5 md:px-0 pt-12 md:pt-28 lg:pt-36 pb-6 md:pb-16 animate-fade-in">
         <div className="md:hidden flex items-center justify-between mb-10">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-2xl bg-foreground flex items-center justify-center">
