@@ -133,60 +133,103 @@ Rules:
       description ? `\n\nContext: ${description}` : ""
     }\n\nFocus on layout rhythm, spacing, typography scale, color discipline, component reuse, hierarchy, and accessibility risks. Cite visual evidence.`;
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-pro-preview",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: userText },
-              { type: "image_url", image_url: { url: imageDataUrl } },
-            ],
-          },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "submit_ux_report" } },
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const text = await aiRes.text();
-      console.error("AI gateway error", aiRes.status, text);
-      // Refund the credit since AI failed
-      await supabase.from("user_credits")
-        .select("credits_remaining")
+    const refundCredit = async () => {
+      const { data } = await supabase
+        .from("user_credits")
+        .select("credits_remaining, credits_used_this_month")
         .eq("user_id", user.id)
-        .single()
-        .then(async ({ data }) => {
-          if (data) {
-            await supabase.from("user_credits").update({
-              credits_remaining: (data.credits_remaining as number) + 1,
-            } as any).eq("user_id", user.id);
-          }
-        });
-      const status = aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 500;
-      const msg = status === 429 ? "Rate limit reached. Try again in a moment."
-        : status === 402 ? "AI credits exhausted. Please add funds in your workspace settings."
-        : "AI analysis failed.";
-      return new Response(JSON.stringify({ error: msg }), {
-        status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        .single();
+      if (data) {
+        await supabase.from("user_credits").update({
+          credits_remaining: (data.credits_remaining as number) + 1,
+          credits_used_this_month: Math.max(0, (data.credits_used_this_month as number) - 1),
+        } as any).eq("user_id", user.id);
+      }
+    };
+
+    const callAI = async () => {
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-pro",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: userText },
+                { type: "image_url", image_url: { url: imageDataUrl } },
+              ],
+            },
+          ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: "submit_ux_report" } },
+        }),
+      });
+    };
+
+    let report: any = null;
+    let lastError: { status: number; msg: string } | null = null;
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const aiRes = await callAI();
+
+      if (!aiRes.ok) {
+        const text = await aiRes.text();
+        console.error("AI gateway error", aiRes.status, text);
+        if (aiRes.status === 429) {
+          lastError = { status: 429, msg: "Rate limit reached. Try again in a moment." };
+          break;
+        }
+        if (aiRes.status === 402) {
+          lastError = { status: 402, msg: "AI credits exhausted. Please add funds in your workspace settings." };
+          break;
+        }
+        lastError = { status: 500, msg: "AI analysis failed." };
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        continue;
+      }
+
+      const data = await aiRes.json();
+      const choice = data.choices?.[0];
+      const upstreamErr = choice?.error;
+      const call = choice?.message?.tool_calls?.[0];
+
+      if (upstreamErr) {
+        console.error("Upstream provider error", JSON.stringify(upstreamErr));
+        lastError = { status: 502, msg: "AI provider connection issue. Please retry." };
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        continue;
+      }
+
+      if (!call?.function?.arguments) {
+        console.error("No tool call", JSON.stringify(data).slice(0, 1000));
+        lastError = { status: 502, msg: "AI did not return a structured report." };
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        continue;
+      }
+
+      try {
+        report = JSON.parse(call.function.arguments);
+        lastError = null;
+        break;
+      } catch (e) {
+        console.error("JSON parse error", e);
+        lastError = { status: 502, msg: "AI returned malformed report." };
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        continue;
+      }
+    }
+
+    if (!report) {
+      await refundCredit();
+      const err = lastError ?? { status: 500, msg: "AI analysis failed." };
+      return new Response(JSON.stringify({ error: err.msg }), {
+        status: err.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await aiRes.json();
-    const call = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!call?.function?.arguments) {
-      console.error("No tool call", JSON.stringify(data));
-      return new Response(JSON.stringify({ error: "AI did not return a structured report." }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const report = JSON.parse(call.function.arguments);
     return new Response(JSON.stringify({ report }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
