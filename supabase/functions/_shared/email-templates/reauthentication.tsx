@@ -11,7 +11,7 @@ interface ReauthenticationEmailProps {
   token: string
 }
 
-export const ReauthenticationEmail = ({ siteName = 'Check My UX', token }: ReauthenticationEmailProps) => (
+export const ReauthenticationEmail = ({ siteName = 'Fix My UX', token }: ReauthenticationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Your {siteName} verification code</Preview>
