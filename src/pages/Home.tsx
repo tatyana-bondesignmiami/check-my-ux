@@ -45,7 +45,7 @@ const Home = () => {
           )}
         </div>
 
-        <section className="mt-10 md:mt-12 grid gap-3 md:grid-cols-3 md:gap-4">
+        <section className="mt-10 md:mt-16 grid gap-3 md:grid-cols-3 md:gap-5">
           <FeatureCard icon={<Eye className="h-5 w-5" />} title="Real screenshot analysis" desc="Powered by Gemini 3.1 Pro vision." />
           <FeatureCard icon={<Zap className="h-5 w-5" />} title="Visual consistency report" desc="Layout, type, color, components, hierarchy." />
           <FeatureCard icon={<ShieldCheck className="h-5 w-5" />} title="Prioritized fixes" desc="High / medium / low severity, with evidence." />
