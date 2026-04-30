@@ -75,18 +75,4 @@ function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <div className="ios-card p-4 flex items-start gap-3">
-      <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-semibold mb-0.5">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-snug">{desc}</p>
-      </div>
-    </div>
-  );
-}
-
 export default Home;
