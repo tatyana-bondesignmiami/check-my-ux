@@ -13,11 +13,23 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
+  const getRedirectBase = () => {
+    const host = window.location.hostname;
+    // Use production URL for the live site & native builds (capacitor/file://).
+    // Use current origin only in local/preview dev.
+    const isDevHost =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host.endsWith(".lovable.app") && host.includes("preview");
+    if (isDevHost) return window.location.origin;
+    return "https://check-my-ux.lovable.app";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + "/reset-password",
+      redirectTo: `${getRedirectBase()}/reset-password`,
     });
     setLoading(false);
     if (error) {
